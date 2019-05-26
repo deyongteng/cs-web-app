@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>客服系统</title>
+    <script src="http://code.jquery.com/jquery-1.8.3.min.js"></script>
+    <style>
+        #server_id {
+            width: 400px;
+            height: 60px;
+            border: 1px solid #000000;
+            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2)
+        }
+        
+        #show_message {
+            width: 400px;
+            height: 400px;
+        }
+    </style>
+</head>
+
+<body>
+    <ul type="text" id="show_message"></ul>
+    <input type="text" id="server_id" />
+    <script type="text/javascript" src="./javascripts/socket.io.js"></script>
+    <script type="text/javascript">
+        var userID = 111;
+
+        var socket = io('http://127.0.0.1:3001');
+        // 客服上线
+        socket.emit('SERVER_CLIENT_ON', {
+            userData: {
+                name: '小艾',
+                userID: userID
+            }
+        });
+
+        // 监听系统信息
+        socket.on('SYSTEM_MESSAGE_CLIENT', function(data) {
+            console.log(data);
+            var html = '<li style="text-align: center;">' + data.message + '</li>'
+            $("#show_message").append(html)
+        });
+
+        // 监听访客发送信息
+        socket.on('CLIENT_MESSAGE', function(data) {
+            if (data.toUserId !== userID) return;
+            var html = '<li>' + data.message + '</li>'
+            $("#show_message").append(html)
+        });
+
+        $("#server_id").on("keydown", (ev) => {
+            if (ev.keyCode === 13) {
+                var _this = $("#server_id");
+                socket.emit("MESSAGE", {
+                    type: 'CLIENT_MESSAGE',
+                    message: _this.val(),
+                    userID: userID,
+                    toUserId: 123
+                })
+                var html = '<li style="text-align: right;">' + _this.val() + '</li>'
+                $("#show_message").append(html)
+                _this.val("")
+            }
+        })
+    </script>
+
+</body>
+
+</html>
